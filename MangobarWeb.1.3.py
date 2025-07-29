@@ -144,33 +144,29 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     offset = (page - 1) * PAGE_SIZE
     conn = sqlite3.connect(DB_PATH)
 
-    # 1) 지역 필터도 ?로 처리하기 위해 조건문과 params 준비
-    region_clauses = []
     params = []
-
-    for region in selected_regions:
-        prefix = region[:4].lower() + '%'
-        region_clauses.append("_ADDR_LOWER LIKE ?")
-        params.append(prefix)
-
-    region_condition = " OR ".join(region_clauses) if region_clauses else "1=1"
-    
-    # 주소 필터를 region_clauses처럼 명시적으로 param으로 분리
     query_addr_param = f"%{query_addr.lower()}%" if query_addr else '%'
-    params.append(query_addr_param)
+
+    if selected_regions:
+        region_prefixes = [region[:4].lower() for region in selected_regions]
+        region_condition = " OR ".join(["_ADDR_LOWER LIKE ?"] * len(region_prefixes))
+        region_condition = f"({region_condition}) AND _ADDR_LOWER LIKE ?"
+        params = [f"{prefix}%" for prefix in region_prefixes]
+        params.append(query_addr_param)
+    else:
+        region_condition = "_ADDR_LOWER LIKE ?"
+        params = [query_addr_param]
 
     sql_i2500 = f"""
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
         FROM i2500
-        WHERE ({region_condition})
-        AND _ADDR_LOWER LIKE ?
+        WHERE {region_condition}
     """
 
     sql_i2819 = f"""
         SELECT LCNS_NO, INDUTY_NM, BSSH_NM, LOCP_ADDR, PRMS_DT, CLSBIZ_DT, CLSBIZ_DVS_CD_NM, _BSSH_NORM
         FROM i2819
-        WHERE ({region_condition})
-        AND _ADDR_LOWER LIKE ?
+        WHERE {region_condition}
     """
 
     df_i2500 = pd.read_sql_query(sql_i2500, conn, params=params)
