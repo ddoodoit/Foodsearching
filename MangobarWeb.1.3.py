@@ -403,7 +403,7 @@ def main():
     if st.button("DB 파일 다운로드"):
         try:
             download_db()
-            st.success("DB 파일 다운로드 완료")
+            st.success("DB 파일 다운로드 완료. 새로고침 후 검색해주세요.")
         except Exception as e:
             st.error(f"DB 다운로드 실패: {e}")
 
