@@ -355,10 +355,10 @@ def show_table_with_click(df):
                 st.write("변경 정보를 불러올 수 없습니다.")
 
 # ===== 🖥️ Streamlit 인터페이스 =====
-st.set_page_config(page_title="F/S 웹 검색", layout = "wide")
+st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
 
 def main():
-    st.title("웹 검색")
+    st.title("foofighters")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
     cred_path = "455003-8188f161c386.json"
 
