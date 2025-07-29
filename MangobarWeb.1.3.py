@@ -28,8 +28,6 @@ JSON_KEYFILE = os.path.join(LOCAL_DIR, "455003-8188f161c386.json")
 
 ####인증관련 함수####
 
-def get_ip():
-    return requests.get("https://api.ipify.org").text.strip()
 
 def get_worksheet():
     if not os.path.exists(JSON_KEYFILE):
@@ -40,7 +38,6 @@ def get_worksheet():
     return client.open_by_url(SHEET_URL).sheet1
 
 def check_license_with_ip_and_key(license_key, api_key):
-    ip = get_ip()
     ws = get_worksheet()
     values = ws.get_all_values()
     df = pd.DataFrame(values[1:], columns=values[0])
