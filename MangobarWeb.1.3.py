@@ -145,15 +145,23 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     offset = (page - 1) * PAGE_SIZE
     conn = sqlite3.connect(DB_PATH)
 
+    # 1) 지역 필터도 ?로 처리하기 위해 조건문과 params 준비
     region_clauses = []
+    params = []
+
     for region in selected_regions:
-        prefix = region[:4].lower()
-        region_clauses.append(f"_ADDR_LOWER LIKE '{prefix}%'")
+        prefix = region[:4].lower() + '%'
+        region_clauses.append("_ADDR_LOWER LIKE ?")
+        params.append(prefix)
+
     region_condition = " OR ".join(region_clauses) if region_clauses else "1=1"
 
-    query_addr = query_addr.lower() if query_addr else ""
+    # 2) 주소 필터 추가
+    if query_addr:
+        params.append(f"%{query_addr.lower()}%")
+    else:
+        params.append('%')
 
-    # ✅ 업소명 조건 제거 (파이썬에서 필터링)
     sql_i2500 = f"""
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
         FROM i2500
@@ -167,8 +175,6 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
         WHERE ({region_condition})
         AND _ADDR_LOWER LIKE ?
     """
-
-    params = (f"%{query_addr}%",)
 
     df_i2500 = pd.read_sql_query(sql_i2500, conn, params=params)
     df_i2819 = pd.read_sql_query(sql_i2819, conn, params=params)
@@ -192,7 +198,6 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
         "CLSBIZ_DT": "폐업일자",
         "CLSBIZ_DVS_CD_NM": "폐업상태",
     })
-
 
     return df_i2500_display, df_i2819_display
 
