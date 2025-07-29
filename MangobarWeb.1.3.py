@@ -142,7 +142,7 @@ def get_drive_file_modified_date(file_id, cred_path):
 # ===== 📋 데이터 불러오기 =====
 def load_data(selected_regions, query_addr, query_bssh, page=1):
     offset = (page - 1) * PAGE_SIZE
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f'file:{DB_PATH}?mode=ro', uri=True)
 
     params = []
     query_addr_param = f"%{query_addr.lower()}%" if query_addr else '%'
@@ -161,17 +161,21 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
         FROM i2500
         WHERE {region_condition}
+        LIMIT ? OFFSET ?
     """
 
     sql_i2819 = f"""
         SELECT LCNS_NO, INDUTY_NM, BSSH_NM, LOCP_ADDR, PRMS_DT, CLSBIZ_DT, CLSBIZ_DVS_CD_NM, _BSSH_NORM
         FROM i2819
         WHERE {region_condition}
+        LIMIT ? OFFSET ?
     """
 
-    df_i2500 = pd.read_sql_query(sql_i2500, conn, params=params)
-    df_i2819 = pd.read_sql_query(sql_i2819, conn, params=params)
+    params_i2500 = params + [PAGE_SIZE, offset]
+    params_i2819 = params + [PAGE_SIZE, offset]
 
+    df_i2500 = pd.read_sql_query(sql_i2500, conn, params=params_i2500)
+    df_i2819 = pd.read_sql_query(sql_i2819, conn, params=params_i2819)
     conn.close()
 
     df_i2500_display = df_i2500.rename(columns={
@@ -195,41 +199,15 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     return df_i2500_display, df_i2819_display
 
 
-#더블클릭시 변경정보 호출#
-def fetch_change_info(api_key, lcns_no):
-    url = f"http://openapi.foodsafetykorea.go.kr/api/{api_key}/I2861/xml/1/500/LCNS_NO={lcns_no}"
-    resp = requests.get(url)
-    if resp.status_code != 200:
-        return None
-
-    root = ET.fromstring(resp.content)
-    items = root.findall('.//row')
-    results = []
-    for item in items:
-        before = item.findtext('CHNG_BF_CN', default='').strip()
-        after = item.findtext('CHNG_AF_CN', default='').strip()
-        date = item.findtext('CHNG_DT', default='').strip()
-        if len(date) == 8:
-            date = f"{date[:4]}-{date[4:6]}-{date[6:]}"
-        results.append({
-            "변경 전 내용": before,
-            "변경 후 내용": after,
-            "변경일자": date
-        })
-    return results
-
-
 #### 검색보조함수-글자분해검색#
 def contains_all_chars(df, query):
-    query_chars = list(query)  # 검색어 글자를 하나씩 분해
-    matched_indices = []
-
-    for idx, row in df.iterrows():
-        name = row.get("_BSSH_NORM", "")
-        if all(char in name for char in query_chars):
-            matched_indices.append(idx)
-
-    return df.loc[matched_indices]
+    if not query:
+        return df
+    query_chars = list(query)
+    mask = pd.Series([True] * len(df))
+    for ch in query_chars:
+        mask &= df['_BSSH_NORM'].str.contains(ch, na=False)
+    return df[mask]
 
 
 ####테이블 렌더링 함수
@@ -403,7 +381,7 @@ def main():
     if st.button("DB 파일 다운로드"):
         try:
             download_db()
-            st.success("DB 파일 다운로드 완료. 새로고침 후 검색해주세요.")
+            st.success("DB 파일 다운로드 완료")
         except Exception as e:
             st.error(f"DB 다운로드 실패: {e}")
 
