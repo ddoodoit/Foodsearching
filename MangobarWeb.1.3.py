@@ -57,7 +57,7 @@ def check_license_with_ip_and_key(license_key, api_key):
             # ✅ 2. 아직 사용되지 않은 키면 등록
             if used.lower() == "no":
                 ws.update_cell(row_idx, 2, "used")     # 'used' 상태로
-                ws.update_cell(row_idx, 3, ip)         # IP 기록
+                #ws.update_cell(row_idx, 3, ip)         # IP 기록
                 ws.update_cell(row_idx, 4, api_key)    # API 키 저장
                 return True
 
