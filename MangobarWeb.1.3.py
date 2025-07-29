@@ -375,10 +375,10 @@ def main():
     if st.session_state.api_key is None:
         # json 파일 없으면 다운로드 버튼 보이게
         if not os.path.exists(JSON_KEYFILE):
-            if st.button("JSON 인증키 파일 다운로드"):
+            if st.button("인증하기"):
                 try:
                     download_json_file()
-                    st.success("다운로드 완료! 인증키를 입력하세요.")
+                    st.success("새로고침을 눌러주세요.")
                 except Exception as e:
                     st.error(f"다운로드 실패: {e}")
             st.stop()
