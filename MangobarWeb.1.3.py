@@ -154,12 +154,10 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
         params.append(prefix)
 
     region_condition = " OR ".join(region_clauses) if region_clauses else "1=1"
-
-    # 2) 주소 필터 추가
-    if query_addr:
-        params.append(f"%{query_addr.lower()}%")
-    else:
-        params.append('%')
+    
+    # 주소 필터를 region_clauses처럼 명시적으로 param으로 분리
+    query_addr_param = f"%{query_addr.lower()}%" if query_addr else '%'
+    params.append(query_addr_param)
 
     sql_i2500 = f"""
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
