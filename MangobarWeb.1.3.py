@@ -368,41 +368,16 @@ def main():
 
 
     if st.session_state.api_key is None:
+        # json 파일 없으면 다운로드 버튼 보이게
         if not os.path.exists(JSON_KEYFILE):
-            st.warning("파일이 없습니다. 아래 버튼을 눌러 다운로드하세요.")
-            
-            if st.button("인증 전 다운로드"):
+            if st.button("JSON 인증키 파일 다운로드"):
                 try:
                     download_json_file()
                     st.success("다운로드 완료! 인증키를 입력하세요.")
-                    st.session_state.download_done = True  # 플래그 설정
                 except Exception as e:
                     st.error(f"다운로드 실패: {e}")
-
-            # 다운로드가 막 끝났으면 바로 인증폼 보여주기
-            if st.session_state.get("download_done", False):
-                with st.form("api_key_form"):
-                    license_id = st.text_input("라이센스 ID 입력")
-                    api_key = st.text_input("인증키 입력", type="password")
-                    submit = st.form_submit_button("인증")
-
-                if submit:
-                    license_id = license_id.strip()
-                    api_key = api_key.strip()
-                    if license_id and api_key:
-                        if check_license_with_ip_and_key(license_id, api_key):
-                            st.session_state.api_key = api_key
-                            st.session_state.license_id = license_id
-                            st.session_state.has_rerun = True
-                            st.success("인증 성공!")
-                        else:
-                            st.warning("인증 실패: ID 또는 인증키가 틀렸거나 이미 사용된 키입니다.")
-                    else:
-                        st.warning("ID와 인증키를 모두 입력해주세요.")
             st.stop()
-            return
 
-        # JSON 키 파일 있으면 인증폼 바로 표시
         with st.form("api_key_form"):
             license_id = st.text_input("라이센스 ID 입력")
             api_key = st.text_input("인증키 입력", type="password")
@@ -416,9 +391,12 @@ def main():
                     st.session_state.api_key = api_key
                     st.session_state.license_id = license_id
                     st.session_state.has_rerun = True
-                    st.success("인증 성공!")
+                    st.rerun()  
+                    return
                 else:
                     st.warning("인증 실패: ID 또는 인증키가 틀렸거나 이미 사용된 키입니다.")
+
+        
             else:
                 st.warning("ID와 인증키를 모두 입력해주세요.")
         return
