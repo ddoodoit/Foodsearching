@@ -148,25 +148,32 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     query_addr_param = f"%{query_addr.lower()}%" if query_addr else '%'
 
     if selected_regions:
-        region_prefixes = [region[:4].lower() for region in selected_regions]
-        region_condition = " OR ".join(["_ADDR_LOWER LIKE ?"] * len(region_prefixes))
-        region_condition = f"({region_condition}) AND _ADDR_LOWER LIKE ?"
-        params = [f"{prefix}%" for prefix in region_prefixes]
+        region_conditions = []
+        for region in selected_regions:
+            prefix = region[:4].lower()
+            region_conditions.append("_ADDR_LOWER LIKE ?")
+            params.append(f"{prefix}%")
+        region_condition = "(" + " OR ".join(region_conditions) + ")"
+        # 주소 조건은 AND로 결합
+        region_condition = f"{region_condition} AND _ADDR_LOWER LIKE ?"
         params.append(query_addr_param)
     else:
         region_condition = "_ADDR_LOWER LIKE ?"
         params = [query_addr_param]
 
+    # 쿼리에 LIMIT OFFSET 추가(페이징용)
     sql_i2500 = f"""
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
         FROM i2500
         WHERE {region_condition}
+        LIMIT {PAGE_SIZE} OFFSET {offset}
     """
 
     sql_i2819 = f"""
         SELECT LCNS_NO, INDUTY_NM, BSSH_NM, LOCP_ADDR, PRMS_DT, CLSBIZ_DT, CLSBIZ_DVS_CD_NM, _BSSH_NORM
         FROM i2819
         WHERE {region_condition}
+        LIMIT {PAGE_SIZE} OFFSET {offset}
     """
 
     df_i2500 = pd.read_sql_query(sql_i2500, conn, params=params)
@@ -174,6 +181,7 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
 
     conn.close()
 
+    # 컬럼명 변경 동일
     df_i2500_display = df_i2500.rename(columns={
         "LCNS_NO": "인허가번호",
         "INDUTY_CD_NM": "업종",
