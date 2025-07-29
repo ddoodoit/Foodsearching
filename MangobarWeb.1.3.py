@@ -47,25 +47,24 @@ def check_license_with_ip_and_key(license_key, api_key):
 
     for i, row in df.iterrows():
         key = row.get("licensekey", "").strip()
-        ip_in_sheet = row.get("ip_address", "").strip()
+        sheet_api_key = row.get("api_key", "").strip()
         used = row.get("used", "").strip()
 
         if key == license_key:
             row_idx = i + 2
 
-            # ✅ 1. IP가 같으면 무조건 통과
-            if ip == ip_in_sheet:
+            # ✅ 1. API 키가 같으면 무조건 통과
+            if api_key == sheet_api_key:
                 return True
 
             # ✅ 2. 아직 사용되지 않은 키면 등록
-            used = row.get("used", "").strip().lower()
-            if used == "no":
-                ws.update_cell(row_idx, 2, "used")         # 'used' 상태로
-                ws.update_cell(row_idx, 3, ip)             # IP 기록
-                ws.update_cell(row_idx, 4, api_key)        # API 키 저장
+            if used.lower() == "no":
+                ws.update_cell(row_idx, 2, "used")     # 'used' 상태로
+                ws.update_cell(row_idx, 3, ip)         # IP 기록
+                ws.update_cell(row_idx, 4, api_key)    # API 키 저장
                 return True
 
-            # ✅ 3. IP도 다르고 used == 'used'면 실패
+            # ✅ 3. API 키 다르고 used == 'used'면 실패
             return False
 
     return False  # licensekey 자체가 없음
