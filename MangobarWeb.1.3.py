@@ -397,10 +397,10 @@ def main():
         return
     date_str = get_drive_file_modified_date(drive_file_id, cred_path)
     col1, col2 = st.columns([1, 3])
-    if st.button("DB 파일 다운로드&업데이트"):
+    if st.button("DB 파일 업데이트 다운로드"):
         try:
             download_db()
-            st.success("DB 파일 다운로드 완료")
+            st.success("DB 다운로드 완료")
         except Exception as e:
             st.error(f"DB 다운로드 실패: {e}")
 
