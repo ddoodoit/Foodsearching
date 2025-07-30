@@ -397,7 +397,7 @@ def main():
         return
     date_str = get_drive_file_modified_date(drive_file_id, cred_path)
     col1, col2 = st.columns([1, 3])
-    if st.button("DB 파일 다운로드"):
+    if st.button("매일 DB 파일 다운로드"):
         try:
             download_db()
             st.success("DB 파일 다운로드 완료")
