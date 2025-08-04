@@ -85,9 +85,11 @@ def update_last_access(license_id):
     for i, row in df.iterrows():
         key = row.get("licensekey", "").strip()
         if key == license_id:
-            row_idx = i + 2  # 구글시트는 1부터, 헤더 1행 있으므로 +2
-            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            ws.update_cell(row_idx, 3, now_str)  # 3열(last_access) 업데이트
+            row_idx = i + 2
+            now_utc = datetime.utcnow()
+            now_kst = now_utc + timedelta(hours=9)
+            now_str = now_kst.strftime("%Y-%m-%d %H:%M:%S")
+            ws.update_cell(row_idx, 3, now_str)
             return True
     return False
 
@@ -468,5 +470,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
