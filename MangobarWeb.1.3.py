@@ -67,11 +67,10 @@ def check_license_with_ip_and_key(license_key, api_key):
 
         if key == license_key:
             row_idx = i + 2  # 1 header + 1-indexed
-            kst_time = datetime.utcnow() + timedelta(hours=9)
-            kst_str = kst_time.strftime("%Y-%m-%d %H:%M:%S")
+            ws.update_cell(row_idx, last_access_col_index, now_str)
 
             # ✅ 항상 last_access 갱신
-            ws.update_cell(row_idx, last_access_col_index, kst_str)
+            ws.update_cell(row_idx, last_access_col_index, now_str)
 
             if api_key == sheet_api_key:
                 return True
