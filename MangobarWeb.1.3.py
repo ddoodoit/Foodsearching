@@ -52,31 +52,36 @@ def check_license_with_ip_and_key(license_key, api_key):
     values = ws.get_all_values()
     df = pd.DataFrame(values[1:], columns=values[0])
 
+    last_access_col_index = None
+    for idx, col in enumerate(values[0]):
+        if col.strip().lower() == "last_access":
+            last_access_col_index = idx + 1  # 1-based index for gspread
+            break
+    if last_access_col_index is None:
+        raise ValueError("시트에 'last_access' 열이 없습니다.")
+
     for i, row in df.iterrows():
         key = row.get("licensekey", "").strip()
         sheet_api_key = row.get("api_key", "").strip()
         used = row.get("used", "").strip()
 
         if key == license_key:
-            row_idx = i + 2
+            row_idx = i + 2  # 1 header + 1-indexed
             now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # ✅ 1. API 키가 같으면 무조건 통과
+            # ✅ 항상 last_access 갱신
+            ws.update_cell(row_idx, last_access_col_index, now_str)
+
             if api_key == sheet_api_key:
-                ws.update_cell(row_idx, 3, now_str)
                 return True
-
-            # ✅ 2. 아직 사용되지 않은 키면 등록
             if used.lower() == "no":
-                ws.update_cell(row_idx, 2, "used")
-                ws.update_cell(row_idx, 3, now_str)
-                ws.update_cell(row_idx, 4, api_key)
+                ws.update_cell(row_idx, 2, "used")  # used 열
+                ws.update_cell(row_idx, 4, api_key)  # api_key 열
                 return True
 
-            # ✅ 3. 이미 사용된 키고 API 키도 다르면 실패
             return False
 
-    return False  # licensekey 자체가 없음
+    return False
 
 def get_api_key_from_sheet(license_key):
     ws = get_worksheet()
@@ -467,5 +472,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
