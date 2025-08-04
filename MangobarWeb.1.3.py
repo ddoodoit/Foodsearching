@@ -37,28 +37,10 @@ def get_worksheet():
     client = gspread.authorize(creds)
     return client.open_by_url(SHEET_URL).sheet1
 
-
-
-def get_worksheet():
-    if not os.path.exists(JSON_KEYFILE):
-        raise FileNotFoundError("인증키 파일이 존재하지 않습니다. 다운로드 버튼을 눌러 주세요.")
-    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_name(JSON_KEYFILE, scope)
-    client = gspread.authorize(creds)
-    return client.open_by_url(SHEET_URL).sheet1
-
 def check_license_with_ip_and_key(license_key, api_key):
     ws = get_worksheet()
     values = ws.get_all_values()
     df = pd.DataFrame(values[1:], columns=values[0])
-
-    last_access_col_index = None
-    for idx, col in enumerate(values[0]):
-        if col.strip().lower() == "last_access":
-            last_access_col_index = idx + 1  # 1-based index for gspread
-            break
-    if last_access_col_index is None:
-        raise ValueError("시트에 'last_access' 열이 없습니다.")
 
     for i, row in df.iterrows():
         key = row.get("licensekey", "").strip()
@@ -66,22 +48,23 @@ def check_license_with_ip_and_key(license_key, api_key):
         used = row.get("used", "").strip()
 
         if key == license_key:
-            row_idx = i + 2  # 1 header + 1-indexed
-            ws.update_cell(row_idx, last_access_col_index, now_str)
+            row_idx = i + 2
 
-            # ✅ 항상 last_access 갱신
-            ws.update_cell(row_idx, last_access_col_index, now_str)
-
+            # ✅ 1. API 키가 같으면 무조건 통과
             if api_key == sheet_api_key:
                 return True
+
+            # ✅ 2. 아직 사용되지 않은 키면 등록
             if used.lower() == "no":
-                ws.update_cell(row_idx, 2, "used")  # used 열
-                ws.update_cell(row_idx, 4, api_key)  # api_key 열
+                ws.update_cell(row_idx, 2, "used")     # 'used' 상태로
+                #ws.update_cell(row_idx, 3, ip)         # IP 기록
+                ws.update_cell(row_idx, 4, api_key)    # API 키 저장
                 return True
 
+            # ✅ 3. API 키 다르고 used == 'used'면 실패
             return False
 
-    return False
+    return False  # licensekey 자체가 없음
 
 def get_api_key_from_sheet(license_key):
     ws = get_worksheet()
@@ -472,7 +455,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
 
