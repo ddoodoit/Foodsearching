@@ -77,7 +77,19 @@ def get_api_key_from_sheet(license_key):
             return row.get("api_key", "").strip()  # 구글시트에 API 키 저장된 열명 확인 필요
     return None
 
+def update_last_access(license_id):
+    ws = get_worksheet()
+    values = ws.get_all_values()
+    df = pd.DataFrame(values[1:], columns=values[0])
 
+    for i, row in df.iterrows():
+        key = row.get("licensekey", "").strip()
+        if key == license_id:
+            row_idx = i + 2  # 구글시트는 1부터, 헤더 1행 있으므로 +2
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ws.update_cell(row_idx, 3, now_str)  # 3열(last_access) 업데이트
+            return True
+    return False
 
 #####다운로드 함수#####
 
@@ -383,6 +395,7 @@ def main():
             api_key = api_key.strip()
             if license_id and api_key:
                 if check_license_with_ip_and_key(license_id, api_key):
+                    update_last_access(license_id)
                     st.session_state.api_key = api_key
                     st.session_state.license_id = license_id
                     st.session_state.has_rerun = True
@@ -455,4 +468,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
