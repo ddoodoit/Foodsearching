@@ -37,6 +37,16 @@ def get_worksheet():
     client = gspread.authorize(creds)
     return client.open_by_url(SHEET_URL).sheet1
 
+
+
+def get_worksheet():
+    if not os.path.exists(JSON_KEYFILE):
+        raise FileNotFoundError("인증키 파일이 존재하지 않습니다. 다운로드 버튼을 눌러 주세요.")
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_name(JSON_KEYFILE, scope)
+    client = gspread.authorize(creds)
+    return client.open_by_url(SHEET_URL).sheet1
+
 def check_license_with_ip_and_key(license_key, api_key):
     ws = get_worksheet()
     values = ws.get_all_values()
@@ -49,19 +59,21 @@ def check_license_with_ip_and_key(license_key, api_key):
 
         if key == license_key:
             row_idx = i + 2
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             # ✅ 1. API 키가 같으면 무조건 통과
             if api_key == sheet_api_key:
+                ws.update_cell(row_idx, 3, now_str)
                 return True
 
             # ✅ 2. 아직 사용되지 않은 키면 등록
             if used.lower() == "no":
-                ws.update_cell(row_idx, 2, "used")     # 'used' 상태로
-                #ws.update_cell(row_idx, 3, ip)         # IP 기록
-                ws.update_cell(row_idx, 4, api_key)    # API 키 저장
+                ws.update_cell(row_idx, 2, "used")
+                ws.update_cell(row_idx, 3, now_str)
+                ws.update_cell(row_idx, 4, api_key)
                 return True
 
-            # ✅ 3. API 키 다르고 used == 'used'면 실패
+            # ✅ 3. 이미 사용된 키고 API 키도 다르면 실패
             return False
 
     return False  # licensekey 자체가 없음
@@ -455,4 +467,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
