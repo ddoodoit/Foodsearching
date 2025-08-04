@@ -24,7 +24,7 @@ DB_PATH = os.path.join(LOCAL_DIR, "mangobardata.db")
 DATE_PATH = os.path.join(LOCAL_DIR, "last_download_date.txt")
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1dEy0asPIHiVeAndwHhORh-qSG1xCihIKegAtAI0lREM"
 JSON_KEYFILE = os.path.join(LOCAL_DIR, "455003-8188f161c386.json")
-
+UPLOAD_DATE = "2025.08.04"
 
 ####인증관련 함수####
 
@@ -397,7 +397,7 @@ def main():
         return
     date_str = get_drive_file_modified_date(drive_file_id, cred_path)
     col1, col2 = st.columns([1, 3])
-    if st.button("2025.08.01 DB 다운받기"):
+    if st.button(f"{UPLOAD_DATE} 다운받기"):
         try:
             download_db()
             st.success("DB 다운로드 완료")
@@ -455,3 +455,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
