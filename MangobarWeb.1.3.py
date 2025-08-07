@@ -24,7 +24,7 @@ DB_PATH = os.path.join(LOCAL_DIR, "mangobardata.db")
 DATE_PATH = os.path.join(LOCAL_DIR, "last_download_date.txt")
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1dEy0asPIHiVeAndwHhORh-qSG1xCihIKegAtAI0lREM"
 JSON_KEYFILE = os.path.join(LOCAL_DIR, "455003-8188f161c386.json")
-UPLOAD_DATE = "2025.08.07"
+UPLOAD_DATE = datetime.today().strftime("%Y.%m.%d")
 
 ####인증관련 함수####
 
@@ -468,6 +468,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
