@@ -335,7 +335,7 @@ def show_table_with_click(df):
 
 
     selected = grid_response.get('selected_rows', [])
-    if selected is not None:
+    if selected:
         first_item = selected[0]
         lcns_no = first_item['인허가번호']
 
@@ -463,6 +463,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
