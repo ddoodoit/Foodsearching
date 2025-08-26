@@ -335,7 +335,6 @@ def show_table_with_click(df):
     
 
     selected = grid_response.get('selected_rows', None)
-    if selected is not None:
         if selected is not None:
             if (hasattr(selected, 'empty') and not selected.empty) or (not hasattr(selected, 'empty') and len(selected) > 0):
                 first_item = selected.iloc[0] if hasattr(selected, 'iloc') else selected[0]
@@ -468,6 +467,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
