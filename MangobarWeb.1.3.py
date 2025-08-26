@@ -343,12 +343,9 @@ def show_table_with_click(df):
 
             # 사용자 라이선스 ID 세션에서 가져오기
             license_id = st.session_state.get("license_id", None)
-            if license_id:
-                api_key = get_api_key_from_sheet(license_id)
-                if api_key:
-                    change_info = fetch_change_info(api_key, lcns_no)
-                else:
-                    change_info = None
+            api_key = st.session_state.get("api_key", None)
+            if license_id and api_key:
+                change_info = fetch_change_info(api_key, lcns_no)
             else:
                 change_info = None
 
@@ -468,6 +465,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
