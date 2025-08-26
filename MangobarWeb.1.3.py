@@ -6,8 +6,6 @@ import requests
 import sqlite3
 import gdown
 import pandas as pd
-from rapidfuzz import fuzz
-import re
 import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -16,6 +14,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import streamlit.components.v1 as components
 
+# ===== 설정 =====
 LOCAL_DIR = os.path.expanduser("~/datadb")
 os.makedirs(LOCAL_DIR, exist_ok=True)
 PAGE_SIZE = 200
@@ -25,8 +24,7 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1dEy0asPIHiVeAndwHhORh-qSG1x
 JSON_KEYFILE = os.path.join(LOCAL_DIR, "455003-8188f161c386.json")
 UPLOAD_DATE = datetime.today().strftime("%Y.%m.%d")
 
-##### 인증관련 함수 #####
-
+# ===== 인증 관련 함수 =====
 def get_worksheet():
     if not os.path.exists(JSON_KEYFILE):
         raise FileNotFoundError("인증키 파일이 존재하지 않습니다. 다운로드 버튼을 눌러 주세요.")
@@ -77,8 +75,6 @@ def update_last_access(license_id):
             return True
     return False
 
-##### 다운로드 함수 #####
-
 def download_json_file():
     gdrive_file_id = "19hyudWgU62umRO8-3m3LCRZCOP3BhkOe"
     gdown.download(f"https://drive.google.com/uc?id={gdrive_file_id}", JSON_KEYFILE, quiet=False)
@@ -90,12 +86,6 @@ def download_db():
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
     gdown.download(f"https://drive.google.com/uc?id={gdrive_file_id}", DB_PATH, quiet=False)
-    if not os.path.exists(DB_PATH) or os.path.getsize(DB_PATH) == 0:
-        raise RuntimeError("DB 다운로드 실패")
-    msg = st.empty()
-    msg.success("✅ DB 다운로드 완료!")
-    time.sleep(1)
-    msg.empty()
 
 def get_drive_file_modified_date(file_id, cred_path):
     try:
@@ -103,14 +93,12 @@ def get_drive_file_modified_date(file_id, cred_path):
         creds = service_account.Credentials.from_service_account_file(cred_path, scopes=scopes)
         service = build("drive", "v3", credentials=creds)
         file = service.files().get(fileId=file_id, fields="modifiedTime").execute()
-        modified_time = file["modifiedTime"]
-        dt = datetime.strptime(modified_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+        dt = datetime.strptime(file["modifiedTime"], "%Y-%m-%dT%H:%M:%S.%fZ")
         return dt.strftime("%b %d, %Y %H:%M")
-    except Exception as e:
+    except Exception:
         return "불러오기 실패"
 
-##### 데이터 로드 #####
-
+# ===== 데이터 로드 =====
 def load_data(selected_regions, query_addr, query_bssh, page=1):
     offset = (page - 1) * PAGE_SIZE
     conn = sqlite3.connect(DB_PATH)
@@ -125,6 +113,7 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     else:
         region_condition = "_ADDR_LOWER LIKE ?"
         params = [query_addr_param]
+
     sql_i2500 = f"""
         SELECT LCNS_NO, INDUTY_CD_NM, BSSH_NM, ADDR, PRMS_DT, _BSSH_NORM
         FROM i2500
@@ -156,8 +145,6 @@ def load_data(selected_regions, query_addr, query_bssh, page=1):
     })
     return df_i2500_display, df_i2819_display
 
-##### 변경정보 호출 #####
-
 def fetch_change_info(api_key, lcns_no):
     url = f"http://openapi.foodsafetykorea.go.kr/api/{api_key}/I2861/xml/1/500/LCNS_NO={lcns_no}"
     resp = requests.get(url)
@@ -172,14 +159,8 @@ def fetch_change_info(api_key, lcns_no):
         date = item.findtext('CHNG_DT', default='').strip()
         if len(date) == 8:
             date = f"{date[:4]}-{date[4:6]}-{date[6:]}"
-        results.append({
-            "변경 전 내용": before,
-            "변경 후 내용": after,
-            "변경일자": date
-        })
+        results.append({"변경 전 내용": before, "변경 후 내용": after, "변경일자": date})
     return results
-
-##### 검색보조 함수 #####
 
 def contains_all_chars(df, query):
     query_chars = list(query)
@@ -190,79 +171,22 @@ def contains_all_chars(df, query):
             matched_indices.append(idx)
     return df.loc[matched_indices]
 
-##### 테이블 렌더링 #####
-
 def show_table_simple(df):
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_selection(selection_mode="none")
     gb.configure_grid_options(domLayout='normal')
-    gridOptions = gb.build()
-    AgGrid(
-        df,
-        gridOptions=gridOptions,
-        height=400,
-        width=1300,
-        allow_unsafe_jscode=True,
-        fit_columns_on_grid_load=False,
-        update_mode=GridUpdateMode.NO_UPDATE,
-    )
+    AgGrid(df, gridOptions=gb.build(), height=400, width=1300, fit_columns_on_grid_load=False, update_mode=GridUpdateMode.NO_UPDATE)
 
 def show_table_change_info_only(df, key=None):
     gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_selection(selection_mode="single")
+    gb.configure_selection(selection_mode="none")
     gb.configure_grid_options(domLayout='normal', enableCellTextSelection=True)
-    gridOptions = gb.build()
-    AgGrid(
-        df,
-        gridOptions=gridOptions,
-        update_mode=GridUpdateMode.NO_UPDATE,
-        fit_columns_on_grid_load=False,
-        use_container_width=True,
-        key=key,
-    )
+    AgGrid(df, gridOptions=gb.build(), update_mode=GridUpdateMode.NO_UPDATE, fit_columns_on_grid_load=False, use_container_width=True, key=key)
 
-def show_table_with_click(df):
-    gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_selection(selection_mode="single", use_checkbox=False)
-    gb.configure_grid_options(domLayout='normal', enableCellTextSelection=True)
-    gridOptions = gb.build()
-
-    js_double_click = """
-    function onCellDoubleClicked(params) {
-        const lcns_no = params.data['인허가번호'];
-        if(lcns_no){
-            window.parent.postMessage({lcns_no_clicked: lcns_no}, "*");
-        }
-    }
-    """
-    gridOptions['onCellDoubleClicked'] = js_double_click
-
-    AgGrid(
-        df,
-        gridOptions=gridOptions,
-        update_mode=GridUpdateMode.SELECTION_CHANGED,
-        allow_unsafe_jscode=True,
-        fit_columns_on_grid_load=False,
-        height=400,
-        width=1300
-    )
-
-##### Streamlit 인터페이스 #####
-
+# ===== Streamlit 페이지 설정 =====
 st.set_page_config(page_title="티스토리 foofighters", layout="wide")
 
-# JS → Python 메시지 연결 (1회만)
-components.html("""
-<script>
-window.addEventListener("message", (event) => {
-    if(event.data.lcns_no_clicked){
-        const lcns_no = event.data.lcns_no_clicked;
-        window.parent.postMessage({'lcns_no_clicked': lcns_no}, "*");
-    }
-});
-</script>
-""", height=0)
-
+# ===== main() =====
 def main():
     st.title("foofighters")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
@@ -270,7 +194,10 @@ def main():
 
     if "api_key" not in st.session_state:
         st.session_state.api_key = None
+    if "has_rerun" not in st.session_state:
+        st.session_state.has_rerun = False
 
+    # ===== 인증 =====
     if st.session_state.api_key is None:
         if not os.path.exists(JSON_KEYFILE):
             if st.button("인증하기"):
@@ -280,6 +207,7 @@ def main():
                 except Exception as e:
                     st.error(f"다운로드 실패: {e}")
             st.stop()
+
         with st.form("api_key_form"):
             license_id = st.text_input("라이센스 ID 입력")
             api_key = st.text_input("인증키 입력", type="password")
@@ -292,6 +220,7 @@ def main():
                     update_last_access(license_id)
                     st.session_state.api_key = api_key
                     st.session_state.license_id = license_id
+                    st.session_state.has_rerun = True
                     st.rerun()
                     return
                 else:
@@ -300,6 +229,7 @@ def main():
                 st.warning("ID와 인증키를 모두 입력해주세요.")
         return
 
+    # ===== DB 다운로드 =====
     date_str = get_drive_file_modified_date(drive_file_id, cred_path)
     col1, col2 = st.columns([1, 3])
     if st.button(f"{UPLOAD_DATE} 다운받기"):
@@ -309,6 +239,7 @@ def main():
         except Exception as e:
             st.error(f"DB 다운로드 실패: {e}")
 
+    # ===== 검색 폼 =====
     with st.form("search_form"):
         selected_regions = st.multiselect("시·도를 선택하세요", options=[
             "서울특별시", "경기도", "인천광역시", "세종특별자치시", "부산광역시",
@@ -337,18 +268,17 @@ def main():
     else:
         df_i2500, df_i2819 = None, None
 
+    # ===== 결과 표시 =====
     if df_i2500 is not None and df_i2819 is not None:
         if query_bssh:
             df_i2500 = contains_all_chars(df_i2500, query_bssh)
             df_i2819 = contains_all_chars(df_i2819, query_bssh)
+
         st.success(f"검색 완료: 정상 {len(df_i2500)}개 / 폐업 {len(df_i2819)}개")
-        st.write("### 영업/정상")
-        show_table_with_click(df_i2500.drop(columns=["_BSSH_NORM", "_BSSH_LOWER"], errors='ignore'))
-        st.write("### 폐업")
-        show_table_simple(df_i2819.drop(columns=["_BSSH_NORM", "_BSSH_LOWER"], errors='ignore'))
 
+        # ===== 좌우 컬럼 배치 =====
+        col_left, col_right = st.columns([3, 2])
 
-
-if __name__ == "__main__":
-    main()
-
+        # 좌측: 영업/정상 테이블
+        with col_left:
+            st.write("### 영업/정
