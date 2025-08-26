@@ -356,7 +356,7 @@ def show_table_with_click(df):
                 df_change = pd.DataFrame(change_info)
                 show_table_change_info_only(df_change, key="change_info_grid")
             else:
-                st.write("변경 정보를 불러올 수 없습니다.")
+                st.write("변경 정보가 없거나 불러올 수 없습니다.30초후에 재시도 해주세요.")
 
 # ===== 🖥️ Streamlit 인터페이스 =====
 st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
@@ -467,6 +467,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
