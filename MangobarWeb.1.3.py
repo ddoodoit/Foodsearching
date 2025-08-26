@@ -209,7 +209,7 @@ def show_table_simple(df):
 
 def show_table_change_info_only(df, key=None):
     gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_selection(selection_mode="none")
+    gb.configure_selection(selection_mode="single")
     gb.configure_grid_options(domLayout='normal', enableCellTextSelection=True)
     gridOptions = gb.build()
     AgGrid(
@@ -347,19 +347,8 @@ def main():
         st.write("### 폐업")
         show_table_simple(df_i2819.drop(columns=["_BSSH_NORM", "_BSSH_LOWER"], errors='ignore'))
 
-    # 정상 테이블 더블클릭 시 변경정보 표시
-    if "lcns_no_clicked" in st.session_state:
-        lcns_no = st.session_state.lcns_no_clicked
-        api_key = st.session_state.api_key
-        if api_key:
-            change_info = fetch_change_info(api_key, lcns_no)
-            if change_info:
-                st.write("### 변경 정보")
-                df_change = pd.DataFrame(change_info)
-                show_table_change_info_only(df_change)
-            else:
-                st.warning("변경 정보가 없거나 불러올 수 없습니다.")
-        del st.session_state.lcns_no_clicked  # 한번 표시 후 삭제
+
 
 if __name__ == "__main__":
     main()
+
