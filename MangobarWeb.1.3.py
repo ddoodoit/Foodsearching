@@ -188,7 +188,7 @@ st.set_page_config(page_title="티스토리 foofighters", layout="wide")
 
 # ===== main() =====
 def main():
-    st.title("foofighters")
+    st.title("foofighter")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
     cred_path = JSON_KEYFILE
 
@@ -282,3 +282,4 @@ def main():
         # 좌측: 영업/정상 테이블
         with col_left:
             st.write("### 영업/정
+
