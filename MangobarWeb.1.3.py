@@ -332,33 +332,38 @@ def show_table_with_click(df):
         height=400,        # 적당한 높이 지정
         width=1300         # 가로 고정 1300px
     )
+    
 
-
-    selected = grid_response.get('selected_rows', [])
-    if selected:
-        first_item = selected[0]
-        lcns_no = first_item['인허가번호']
-
-        # 사용자 라이선스 ID 세션에서 가져오기
-        license_id = st.session_state.get("license_id", None)
-        api_key = st.session_state.get("api_key", None)
-        if license_id and api_key:
-            change_info = fetch_change_info(api_key, lcns_no)
-        else:
-            change_info = None
-
-        if change_info:
-            st.write("### 변경 정보")
-            df_change = pd.DataFrame(change_info)
-            show_table_change_info_only(df_change, key="change_info_grid")
-        else:
-            st.write("변경 정보가 없거나 불러올 수 없습니다.30초후에 재시도 해주세요.")
+    selected = grid_response.get('selected_rows', None)
+    if selected is not None:
+        if selected is not None:
+            if (hasattr(selected, 'empty') and not selected.empty) or (not hasattr(selected, 'empty') and len(selected) > 0):
+                first_item = selected.iloc[0] if hasattr(selected, 'iloc') else selected[0]
+                lcns_no = first_item['인허가번호']
+        
+                # 사용자 라이선스 ID 세션에서 가져오기
+                license_id = st.session_state.get("license_id", None)
+                if license_id:
+                    api_key = get_api_key_from_sheet(license_id)
+                    if api_key:
+                        change_info = fetch_change_info(api_key, lcns_no)
+                    else:
+                        change_info = None
+                else:
+                    change_info = None
+        
+                if change_info:
+                    st.write("### 변경 정보")
+                    df_change = pd.DataFrame(change_info)
+                    show_table_change_info_only(df_change, key="change_info_grid")
+                else:
+                    st.write("변경 정보가 없거나 불러올 수 없습니다.30초후에 재시도 해주세요.")
 
 # ===== 🖥️ Streamlit 인터페이스 =====
 st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
 
 def main():
-    st.title("foofighters1.4")
+    st.title("foofighters")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
     cred_path = "455003-8188f161c386.json"
 
@@ -463,13 +468,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
 
 
 
