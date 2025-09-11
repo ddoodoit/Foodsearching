@@ -369,6 +369,7 @@ st.markdown(
     .block-container {
         padding-left: 10rem;   /* 왼쪽 여백 */
         padding-right: 10rem;  /* 오른쪽 여백 */
+        padding-top: 10rem;
     }
     </style>
     """,
@@ -481,6 +482,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
