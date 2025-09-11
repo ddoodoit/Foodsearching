@@ -365,12 +365,13 @@ st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
 st.markdown(
     """
     <style>
-    /* 좌우 여백만 조절 */
+    /* 좌우 여백만 조절 (사이드바 폭 느낌) */
     .block-container {
-        padding-left: 10rem;
-        padding-right: 10rem;
-        padding-top: 0;  /* 상단 여백 제거 */
+        padding-left: 10rem;   /* 왼쪽 여백 */
+        padding-right: 10rem;  /* 오른쪽 여백 */
     }
+    </style>
+    """,
     unsafe_allow_html=True
 )
 
@@ -480,6 +481,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
