@@ -362,8 +362,21 @@ def show_table_with_click(df):
 # ===== 🖥️ Streamlit 인터페이스 =====
 st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
 
+st.markdown(
+    """
+    <style>
+    /* 좌우 여백만 조절 (사이드바 폭 느낌) */
+    .block-container {
+        padding-left: 1.5rem;   /* 왼쪽 여백 */
+        padding-right: 1.5rem;  /* 오른쪽 여백 */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 def main():
-    st.header("foofighters")
+    st.title("foofighters")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
     cred_path = "455003-8188f161c386.json"
 
@@ -468,6 +481,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
