@@ -363,7 +363,7 @@ def show_table_with_click(df):
 st.set_page_config(page_title="티스토리 foofighters", layout = "wide")
 
 def main():
-    st.title("foofighters")
+    st.markdown("# foofighters")
     drive_file_id = "1ZEvd4Dc6eZkHL87BYxVNNiXfZC1YUuV1"
     cred_path = "455003-8188f161c386.json"
 
@@ -468,6 +468,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
