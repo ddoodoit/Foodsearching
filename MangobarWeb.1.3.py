@@ -367,20 +367,10 @@ st.markdown(
     <style>
     /* 좌우 여백만 조절 (사이드바 폭 느낌) + 상단 여백 */
     .block-container {
-        padding-top: 5rem;      /* 상단 여백 */
         padding-left: 10rem;    /* 왼쪽 여백 */
         padding-right: 10rem;   /* 오른쪽 여백 */
     }
 
-    /* h1 상단 마진 제거 */
-    .stApp h1 {
-        margin-top: 0;
-    }
-    /* Streamlit 내부 구조 상단 여백 최소화 */
-    .css-1v3fvcr {  /* 실제 top-level wrapper */
-        padding-top: 0 !important;
-        margin-top: 0 !important;
-    }
     </style>
     """,
     unsafe_allow_html=True
@@ -492,6 +482,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
