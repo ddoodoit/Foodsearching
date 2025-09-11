@@ -367,8 +367,8 @@ st.markdown(
     <style>
     /* 좌우 여백만 조절 (사이드바 폭 느낌) */
     .block-container {
-        padding-left: 1.5rem;   /* 왼쪽 여백 */
-        padding-right: 1.5rem;  /* 오른쪽 여백 */
+        padding-left: 18rem;   /* 왼쪽 여백 */
+        padding-right: 18rem;  /* 오른쪽 여백 */
     }
     </style>
     """,
@@ -481,6 +481,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
