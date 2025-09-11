@@ -376,6 +376,11 @@ st.markdown(
     .stApp h1 {
         margin-top: 0;
     }
+    /* Streamlit 내부 구조 상단 여백 최소화 */
+    .css-1v3fvcr {  /* 실제 top-level wrapper */
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -487,6 +492,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
